@@ -24,9 +24,32 @@ awayTeam <- gameData$team_home[1, "team_batting"]
 gs_auth()
 #create new google sheet once user has been authenticated
 ##############TODO: MAKE SURE YOU DONT NEED TO AUTHENTICATE WITH EACH CALL
-createGoogleSheet(paste(awayTeam, "@", homeTeam, gameData$game_date))
+sheetTitle <- paste(awayTeam, "@", homeTeam, gameData$game_date)
+createGoogleSheet(sheetTitle)
+sheet <- gs_title(sheetTitle)
+addWorksheetHeaders(sheet)
+
+
+
+
+############################################################
+#### Collect data throughout game and update the spreadsheet
+############################################################
+
+#keep track of pitchers seen so far
+pitcherData <- gameData[[paste0(homeOrAway, "_pitchers")]]
+gameTotalPitches <- 0
+
+#add the current data to the spreadsheets, if there is any
 
 
 #look for data update 
-pitcherData <- gameData[[paste0(homeOrAway, "_pitchers")]]
+while(!isGameOver(gameData$game_status)){
+  newPitches <- getNewPitchData(pitcherData, gameTotalPitches)
+  writeToGamefeed(sheet = sheet, newPitches = newPitches, anchor = paste0("A", gameTotalPitches+1))
+  gameTotalPitches <- max(newPitches$game_total_pitches)
   
+  gameData <- getDataFromUrl(url)
+  pitcherData <- gameData[[paste0(homeOrAway, "_pitchers")]]
+  
+}
