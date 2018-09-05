@@ -12,7 +12,7 @@ createGoogleSheet <- function(title){
 addWorksheetHeaders <- function(sheet){
   gs_edit_cells(ss = sheet, ws = "Stressful Inning Scores", input = c("Pitcher", "Inning", "Stressful Inning Total"), byrow = TRUE)
   gs_edit_cells(ss = sheet, ws = "Pitcher Raw Data", input = c("Pitcher", "Season", "Venue", "Opponent", "Date", "Inning", "Inning Type", "Total Pitches",
-                                                               "Number of Batters", "Pitches Per Batter", "Number of Runners", "Length of Inning", 
+                                                               "Number of Batters", "Pitches Per Batter", "Number of Runners on Base", "Length of Inning", 
                                                                "Average Pitch Velocity", "Post Work to Rest Ratio", "Pre Work to Rest Ratio", 
                                                                "Stressful Inning Total"), byrow = TRUE)
   gs_edit_cells(ss = sheet, ws = "Inning Times", c("Inning", "Start", "End", "Inning Length"), byrow = TRUE)
@@ -23,5 +23,15 @@ addWorksheetHeaders <- function(sheet){
 #update the Gamefeed page
 writeToGamefeed <- function(sheet, newPitches, anchor){
  gs_edit_cells(ss = sheet, ws = "Gamefeed", anchor = anchor, input = newPitches)
+}
+
+#write pitcher data by inning
+writePitcherRawData <- function(sheet, pitcherRawData){
+  gs_edit_cells(ss = sheet, ws = "Pitcher Raw Data", input = pitcherRawData, anchor = "A2", col_names = FALSE)
+}
+
+#update stressful inning scores for pitchers
+writeStressScores <- function(sheet, stressScores){
+  gs_edit_cells(ss = sheet, ws = "Stressful Inning Scores", input = stressScores, anchor = "A2")
 }
 
