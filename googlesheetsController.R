@@ -15,14 +15,14 @@ addWorksheetHeaders <- function(sheet){
                                                                "Number of Batters", "Pitches Per Batter", "Number of Runners on Base", "Length of Inning", 
                                                                "Average Pitch Velocity", "Post Work to Rest Ratio", "Pre Work to Rest Ratio", 
                                                                "Stressful Inning Total"), byrow = TRUE)
-  gs_edit_cells(ss = sheet, ws = "Inning Times", c("Inning", "Start", "End", "Inning Length"), byrow = TRUE)
+  gs_edit_cells(ss = sheet, ws = "Inning Times", c("Start", "End", "Inning Length"), byrow = TRUE)
   gs_edit_cells(ss = sheet, ws = "Gamefeed", c("pitcher_name", "inning", "player_total_pitches", "game_total_pitches", "result", "outs"), byrow = TRUE)
 }
 
 
 #update the Gamefeed page
-writeToGamefeed <- function(sheet, newPitches, anchor){
- gs_edit_cells(ss = sheet, ws = "Gamefeed", anchor = anchor, input = newPitches)
+writeToGamefeed <- function(sheet, newPitches){
+ gs_edit_cells(ss = sheet, ws = "Gamefeed", anchor = "A2", input = newPitches, col_names = FALSE)
 }
 
 #write pitcher data by inning
