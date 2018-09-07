@@ -7,6 +7,7 @@ source("googlesheetsController.R")
 # record inning scores
 # calculate stress scores and put them in the raw data
 # put inning time recordings into their own functions
+# set length of inning in pitcher raw data
 
 
 gameData <- NULL
@@ -94,8 +95,8 @@ while(TRUE){
     }
     
     #NOTE: if started after the inning starts, it will not be accurate
-    if(max(pitcherRawData$Inning > inning)){
-      inning <- max(pitcherRawData$Inning)
+    if(max(as.numeric(pitcherRawData$Inning) > inning)){
+      inning <- max(as.numeric(pitcherRawData$Inning))
       inningTimes[inning, "Start Time"] = strftime(Sys.time(), "%T")
       
       #set interval between innings, if possible

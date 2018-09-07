@@ -53,7 +53,7 @@ getPitcherRawData <- function(gamePitchData, homeOrAway, opponent, date){
   rawData <- data.frame()
   
   #get the unique pitchers to pitch in each inning
-  for(inning in unique(gamePitchData$inning)){
+  for(inning in as.numeric(unique(gamePitchData$inning))){
     inningPitchData <- gamePitchData[which(gamePitchData$inning == inning),]
     for(pitcher in unique(inningPitchData$pitcher_name)){
       pitcherInningData <- inningPitchData[which(inningPitchData$pitcher_name == pitcher), ]
@@ -72,7 +72,8 @@ getPitcherRawData <- function(gamePitchData, homeOrAway, opponent, date){
                                  round(mean(as.double(inningPitchData$start_speed)), 2), 
                                  NA, ###TODO: add Post Work to Rest ratio
                                  NA, ###TODO: add Pre Work to Rest ratio,
-                                 NA  #####TODO: calculate stress inning score and put it here
+                                 NA, #####TODO: calculate stress inning score and put it here
+                                 stringsAsFactors = FALSE  
                                 )
       colnames(pitcherEntry) <- c("Pitcher", "Season", "Venue", "Opponent", "Date", "Inning", "Inning Type", 
                                   "Total Pitches", "Number of Batters", "Pitches Per Batter", "Num Runners on Base",
