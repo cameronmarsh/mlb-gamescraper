@@ -15,9 +15,9 @@ addWorksheetHeaders <- function(sheet){
                                                                "Number of Batters", "Pitches Per Batter", "Number of Runners on Base", "Length of Inning", 
                                                                "Average Pitch Velocity", "Post Work to Rest Ratio", "Pre Work to Rest Ratio", 
                                                                "Stressful Inning Total"), byrow = TRUE)
-  gs_edit_cells(ss = sheet, ws = "Inning Times", c("Start", "End", "Inning Length"), byrow = TRUE)
-  gs_edit_cells(ss = sheet, ws = "Gamefeed", c("pitcher_name", "inning", "player_total_pitches", "game_total_pitches", "result", "outs"), byrow = TRUE)
-}
+  gs_edit_cells(ss = sheet, ws = "Inning Times", c("Start", "End", "Inning Length", "Time Between Innings"), byrow = TRUE)
+  gs_edit_cells(ss = sheet, ws = "Gamefeed", c("pitcher_name", "inning", "player_total_pitches", "game_total_pitches", "result", "outs", "batter", "start_speed"), byrow = TRUE)
+}, 
 
 
 #update the Gamefeed page

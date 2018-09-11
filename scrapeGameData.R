@@ -1,5 +1,5 @@
-library(rvest)
-library(jsonlite)
+require(rvest)
+require(jsonlite)
 
 #red sox venue id = 3
 
@@ -49,7 +49,7 @@ getNewPitchData <- function(pitcherData, gameTotalPitches){
 #
 # Get the raw data for each pitcher
 #
-getPitcherRawData <- function(gamePitchData, homeOrAway, opponent, date){
+getPitcherRawData <- function(gamePitchData, homeOrAway, opponent, date, inningTimes){
   rawData <- data.frame()
   
   #get the unique pitchers to pitch in each inning
@@ -68,10 +68,10 @@ getPitcherRawData <- function(gamePitchData, homeOrAway, opponent, date){
                                  length(unique(pitcherInningData$batter)),
                                  round(nrow(pitcherInningData)/length(unique(pitcherInningData)), 2),
                                  length(unique(pitcherInningData$batter)) - length(unique(pitcherInningData$outs)),
-                                 NA, ###TODO: enter the inning length here 
+                                 inningTimes[inning, "Inning Length"], 
                                  round(mean(as.double(inningPitchData$start_speed)), 2), 
-                                 NA, ###TODO: add Post Work to Rest ratio
-                                 NA, ###TODO: add Pre Work to Rest ratio,
+                                 getPostWorkToRestRatio(inning, inningTimes), #Post Work to Rest ratio
+                                 getPreWorkToRestRatio(inning, inningTimes), #add Pre Work to Rest ratio
                                  NA, #####TODO: calculate stress inning score and put it here
                                  stringsAsFactors = FALSE  
                                 )

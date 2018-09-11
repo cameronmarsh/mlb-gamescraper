@@ -8,6 +8,7 @@ source("googlesheetsController.R")
 # calculate stress scores and put them in the raw data
 # put inning time recordings into their own functions
 # set length of inning in pitcher raw data
+# track end of pitcher inning
 
 
 gameData <- NULL
@@ -56,8 +57,8 @@ addWorksheetHeaders(sheet)
 pitcherData <- gameData[[paste0(homeOrAway, "_pitchers")]]
 gameTotalPitches <- 0
 inning <- 1
-inningTimes <- data.frame(rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9))
-colnames(inningTimes) <- c("Start Time", "End Time", "Inning Length", "Time Between Innings")
+inningTimes <- data.frame(rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9))
+colnames(inningTimes) <- c("Start Time", "End Time", "Inning Length", "Inning Length In Seconds", "Time Between Innings", "Time Between Innings In Seconds")
 pitcherRawData <- data.frame()
 
 
@@ -71,7 +72,7 @@ while(TRUE){
     writeToGamefeed(sheet, getNewPitchData(pitcherData, 0))
     
     #create raw data for each pitcher by inning
-    pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), homeOrAway, opponent, gameData$game_date)
+    pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), homeOrAway, opponent, gameData$game_date, inningTimes)
     writePitcherRawData(sheet, pitcherRawData)
       
     # pitcherStress <- getInningStressScores(pitcherData)
@@ -89,6 +90,7 @@ while(TRUE){
         hours <- round(inningLength / 3600, 0)
         minutes <- round(inningLength / 60, 0)
         seconds <- inningLength %% 60
+        inningTimes[inning, "Inning Length In Seconds"] = inningLength
         inningTimes[inning, "Inning Length"] = paste0(hours, "h ", minutes, "m ", seconds, "s")
         
       }
@@ -107,6 +109,7 @@ while(TRUE){
         hours <- round(preInningTime / 3600, 0)
         minutes <- round(preInningTime / 60, 0)
         seconds <- preInningTime %% 60
+        inningTimes[inning, "Time Between Innings In Seconds"] = preInningTime
         inningTimes[inning, "Time Between Innings"] = paste0(hours, "h ", minutes, "m ", seconds, "s")
       }
     }
