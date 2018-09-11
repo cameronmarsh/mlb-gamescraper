@@ -8,7 +8,10 @@ source("googlesheetsController.R")
 # calculate stress scores and put them in the raw data
 # put inning time recordings into their own functions
 # set length of inning in pitcher raw data
-# track end of pitcher inning
+# track end of pitcher inning --> what if mid-inning switch?
+# fix inning times on first loop
+# write inning times to google sheet
+# test stress scores
 
 
 gameData <- NULL
@@ -96,6 +99,7 @@ while(TRUE){
       }
     }
     
+    #New inning start
     #NOTE: if started after the inning starts, it will not be accurate
     if(max(as.numeric(pitcherRawData$Inning) > inning)){
       inning <- max(as.numeric(pitcherRawData$Inning))
@@ -121,6 +125,7 @@ while(TRUE){
   }
   
   ###TODO: check if we need to save this data -> could waste a lot of space
+  
   #look for updated data from baseballsavant gamefeed
   #if the game is over, exit
   if(isGameOver(gameData$game_status)){
