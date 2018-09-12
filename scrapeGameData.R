@@ -68,6 +68,8 @@ getPreWorkToRestRatio <- function(inning, inningTimes){
 # this doesn't make sense
 #
 getNOPStress <- function(numPitches){
+  if(is.na(numPitches)) return(NA)
+  
   if(numPitches > 26.7) return(2)
   if(numPitches > 26.1) return(1.9)
   if(numPitches > 25.5) return(1.8)
@@ -109,6 +111,8 @@ getNOPStress <- function(numPitches){
   if(numPitches < 13.8) return(-.2)
   if(numPitches < 14.4) return(-.1)
   if(numPitches < 15.6) return(0)
+  
+  return(0)
 
 }
 
@@ -118,6 +122,8 @@ getNOPStress <- function(numPitches){
 # could simplify this, and some values not accounted for
 #
 getPPBStress <- function(pitchesPerBatter){
+    if(is.na(pitchesPerBatter)) return(NA)
+  
     if(pitchesPerBatter > 5.99) return(2)
     if(pitchesPerBatter > 5.89) return(1.9)
     if(pitchesPerBatter > 5.79) return(1.8)
@@ -160,6 +166,8 @@ getPPBStress <- function(pitchesPerBatter){
     if(pitchesPerBatter < 3.8) return(-.2)
     if(pitchesPerBatter < 3.9) return(-.1)
     if(pitchesPerBatter < 4) return(0)
+  
+    return(0)
 }
 
 
@@ -167,6 +175,8 @@ getPPBStress <- function(pitchesPerBatter){
 # ROB Stress
 #
 getROBStress <- function(numRunners){
+  if(is.na(numRunners)) return(NA)
+  
   if(numRunners>4.9) return(3.7)
   if(numRunners>3.9) return(2.8)
   if(numRunners>2.9) return(1.9)
@@ -180,29 +190,42 @@ getROBStress <- function(numRunners){
 # LOI Stress
 #
 getLOIStress <- function(inningLength){
+  if(is.na(inningLength)) return(NA)
+  
   if(inningLength > 14) return(2)
   if(inningLength < 1) return(0)
   if(inningLength < 2) return(-1)
+  
+  else return(0)
 }
 
 #
 # TBI Stress
 #
 getTBIStress <- function(timeBetweenInnings){
+  if(is.na(timeBetweenInnings)) return(NA)
+  
   if(timeBetweenInnings > 21) return(2)
   if(timeBetweenInnings < 1) return(0)
   if(timeBetweenInnings < 5) return(2)
+  
+  else return(0)
 }
 
 #
 # Stressful Inning Total
 #
 getStressfulInningScore <- function(inning, pitcherInningData, inningTimes){
+  prework <- getPreWorkToRestRatio(inning, inningTimes)
+  postwork <- getPostWorkToRestRatio(inning, inningTimes)
+  if(is.na(prework)) prework <- 0
+  if(is.na(postwork)) postwork <- 0
+  
   return(sum(getPostWorkToRestRatio(inning, inningTimes), #Post Work to Rest ratio
              getPreWorkToRestRatio(inning, inningTimes), #add Pre Work to Rest ratio
              getNOPStress(nrow(pitcherInningData)), # NOP Stress
              getPPBStress(round(nrow(pitcherInningData)/length(unique(pitcherInningData)), 2)), # PPB Stress
-             getROBStress( length(unique(pitcherInningData$batter)) - length(unique(pitcherInningData$outs))), # ROB Sress
+             getROBStress(length(unique(pitcherInningData$batter)) - length(unique(pitcherInningData$outs))), # ROB Sress
              getLOIStress(inningTimes[inning, "Inning Length In Seconds"]/60), # LOI Stress
              getTBIStress(inningTimes[inning, "Time Between Innings In Seconds"]/60)))
 }
@@ -225,27 +248,27 @@ getPitcherRawData <- function(gamePitchData, homeOrAway, opponent, date, inningT
                                  opponent, 
                                  date,
                                  inning, 
-                                 round(nrow(pitcherInningData)/nrow(inningPitchData), 2),
-                                 nrow(pitcherInningData),
-                                 length(unique(pitcherInningData$batter)),
-                                 round(nrow(pitcherInningData)/length(unique(pitcherInningData)), 2),
-                                 length(unique(pitcherInningData$batter)) - length(unique(pitcherInningData$outs)),
-                                 inningTimes[inning, "Inning Length"], 
-                                 round(mean(as.double(inningPitchData$start_speed)), 2), 
+                                 round(nrow(pitcherInningData)/nrow(inningPitchData), 2), #inning type
+                                 nrow(pitcherInningData), #total pitches
+                                 length(unique(pitcherInningData$batter)), #batters
+                                 round(nrow(pitcherInningData)/length(unique(pitcherInningData)), 2), #pitches per batter
+                                 length(unique(pitcherInningData$batter)) - length(unique(pitcherInningData$outs)), #runners
+                                 inningTimes[inning, "Inning Length"], #length of inning
+                                 round(mean(as.double(inningPitchData$start_speed)), 2), #avg pitch vel
                                  getPostWorkToRestRatio(inning, inningTimes), #Post Work to Rest ratio
                                  getPreWorkToRestRatio(inning, inningTimes), #add Pre Work to Rest ratio
                                  getNOPStress(nrow(pitcherInningData)), # NOP Stress
                                  getPPBStress(round(nrow(pitcherInningData)/length(unique(pitcherInningData)), 2)), # PPB Stress
-                                 getROBStress( length(unique(pitcherInningData$batter)) - length(unique(pitcherInningData$outs))), # ROB Sress
+                                 getROBStress(length(unique(pitcherInningData$batter)) - length(unique(pitcherInningData$outs))), # ROB Sress
                                  getLOIStress(inningTimes[inning, "Inning Length In Seconds"]/60), # LOI Stress
                                  getTBIStress(inningTimes[inning, "Time Between Innings In Seconds"]/60), # TBI Stress
-                                 getStressfulInningScore(inning, pitcherInningData, inningTimes), #####TODO: calculate stress inning score and put it here
+                                 getStressfulInningScore(inning, pitcherInningData, inningTimes), #stress score
                                  stringsAsFactors = FALSE  
                                 )
       colnames(pitcherEntry) <- c("Pitcher", "Season", "Venue", "Opponent", "Date", "Inning", "Inning Type", 
-                                  "Total Pitches", "Number of Batters", "Pitches Per Batter", "Num Runners on Base",
+                                  "Total Pitches", "Number of Batters", "Pitches Per Batter", "Number Runners on Base",
                                   "Inning Length", "Avg Pitch Velocity", "Post Work to Rest Ratio", 
-                                  "Pre Work to Rest Ratio", "Stressful Inning Total")
+                                  "Pre Work to Rest Ratio", "NOP Stress", "PPB Stress", "ROB Stress", "LOI Stress", "TBI Stress", "Stressful Inning Total")
       rawData <- rbind(pitcherEntry, rawData)
     }
   }
@@ -256,11 +279,12 @@ getPitcherRawData <- function(gamePitchData, homeOrAway, opponent, date, inningT
 #
 # create the table for inning stress scores for each pitcher to write to the google sheet
 #
-getInningStressScores <- function(pitcherData){
-  #get all pitch data since the game began
+getInningStressScores <- function(pitcherRawData){
   stressScores <- data.frame()
-  
-  #
+  for(i in 1:nrow(pitcherRawData)){
+    pitcherInning <- pitcherRawData[i, c("Pitcher", "Inning", "Stressful Inning Total")]
+    stressScores <- rbind(pitcherInning, stressScores)
+  }
   
   return(stressScores)
 }

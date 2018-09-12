@@ -1,16 +1,7 @@
 source("scrapeGameData.R")
 source("googlesheetsController.R")
 
-# check about try/catch with google access errors
-# check when game metadata is available
-# delete unnecessary code and objects
-# record inning scores
-# calculate stress scores and put them in the raw data
-# put inning time recordings into their own functions
-# set length of inning in pitcher raw data
 # track end of pitcher inning --> what if mid-inning switch?
-# fix inning times on first loop
-# write inning times to google sheet
 # test stress scores
 
 
@@ -47,7 +38,7 @@ gs_auth()
 sheetTitle <- paste(awayTeam, "@", homeTeam, gameData$game_date)
 createGoogleSheet(sheetTitle)
 sheet <- gs_title(sheetTitle)
-addWorksheetHeaders(sheet)
+# addWorksheetHeaders(sheet)
 
 
 
@@ -77,9 +68,9 @@ while(TRUE){
     #create raw data for each pitcher by inning
     pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), homeOrAway, opponent, gameData$game_date, inningTimes)
     writePitcherRawData(sheet, pitcherRawData)
-      
-    # pitcherStress <- getInningStressScores(pitcherData)
-    # writeStressScores(sheet, pitcherStress)
+
+    pitcherStress <- getInningStressScores(pitcherRawData)
+    writeStressScores(sheet, pitcherStress)
     
     #record time inning starts/ends
     if("3" %in% newPitches$outs){
@@ -118,6 +109,7 @@ while(TRUE){
       }
     }
     
+    writeToInningTimes(sheet, inningTimes)
     
     gameTotalPitches <- max(newPitches$game_total_pitches)
   } else {
