@@ -1,3 +1,5 @@
+setwd(dirname(sys.frame(1)$ofile))
+
 source("scrapeGameData.R")
 source("googlesheetsController.R")
 
@@ -59,7 +61,6 @@ gameTotalPitches <- 0
 inning <- 1
 inningTimes <- data.frame(1:9, rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9))
 colnames(inningTimes) <- c("Inning", "Start Time", "End Time", "Inning Length", "Inning Length In Seconds", "Time Between Innings", "Time Between Innings In Seconds")
-# inningTimes[1, "Start Time"] = strftime(Sys.time(), "%T")
 inningTimes[1, "Time Between Innings"] = "0h 0m 0s"
 inningTimes[1, "Time Between Innings In Seconds"] = 0
 writeToInningTimes(sheet, inningTimes)
@@ -71,14 +72,15 @@ while(TRUE){
   #grab data we haven't seen yet
   newPitches <- getNewPitchData(pitcherData, gameTotalPitches)
   
-  #create raw data for each pitcher by inning
-  pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), homeOrAway, opponent, gameData$game_date, inningTimes)
-  
   #if there is new data, 
   if(nrow(newPitches) != 0){
     if(is.na(inningTimes[1, "Start Time"])) {
       inningTimes[1, "Start Time"] = strftime(Sys.time(), "%T")
     }
+    
+    #create raw data for each pitcher by inning
+    pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), 
+                                        homeOrAway, opponent, gameData$game_date, inningTimes)
     
     #record time inning starts/ends
     if("3" %in% newPitches$outs){
