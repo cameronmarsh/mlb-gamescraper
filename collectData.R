@@ -1,10 +1,6 @@
 source("scrapeGameData.R")
 source("googlesheetsController.R")
 
-# track end of pitcher inning --> what if mid-inning switch?
-# test stress scores
-
-
 gameData <- NULL
 homeOrAway <- NULL
 
@@ -32,7 +28,17 @@ if(homeOrAway == 'home'){
 }
 
 #have the user authenticate their google account in a browser
-gs_auth()
+#make sure the http connection is okay before we write to googlesheets
+result = 1
+while(result == 1){
+  tryCatch({
+    gs_auth()
+    result = 0
+  }, error=function(e){
+    message(e)
+  })
+}
+
 #create new google sheet once user has been authenticated
 ##############TODO: MAKE SURE YOU DONT NEED TO AUTHENTICATE WITH EACH CALL
 sheetTitle <- paste(awayTeam, "@", homeTeam, gameData$game_date)
@@ -51,8 +57,12 @@ sheet <- gs_title(sheetTitle)
 pitcherData <- gameData[[paste0(homeOrAway, "_pitchers")]]
 gameTotalPitches <- 0
 inning <- 1
-inningTimes <- data.frame(rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9))
-colnames(inningTimes) <- c("Start Time", "End Time", "Inning Length", "Inning Length In Seconds", "Time Between Innings", "Time Between Innings In Seconds")
+inningTimes <- data.frame(1:9, rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9), rep(NA, 9))
+colnames(inningTimes) <- c("Inning", "Start Time", "End Time", "Inning Length", "Inning Length In Seconds", "Time Between Innings", "Time Between Innings In Seconds")
+# inningTimes[1, "Start Time"] = strftime(Sys.time(), "%T")
+inningTimes[1, "Time Between Innings"] = "0h 0m 0s"
+inningTimes[1, "Time Between Innings In Seconds"] = 0
+writeToInningTimes(sheet, inningTimes)
 pitcherRawData <- data.frame()
 
 
@@ -61,16 +71,14 @@ while(TRUE){
   #grab data we haven't seen yet
   newPitches <- getNewPitchData(pitcherData, gameTotalPitches)
   
+  #create raw data for each pitcher by inning
+  pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), homeOrAway, opponent, gameData$game_date, inningTimes)
+  
   #if there is new data, 
   if(nrow(newPitches) != 0){
-    writeToGamefeed(sheet, getNewPitchData(pitcherData, 0))
-    
-    #create raw data for each pitcher by inning
-    pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), homeOrAway, opponent, gameData$game_date, inningTimes)
-    writePitcherRawData(sheet, pitcherRawData)
-
-    pitcherStress <- getInningStressScores(pitcherRawData)
-    writeStressScores(sheet, pitcherStress)
+    if(is.na(inningTimes[1, "Start Time"])) {
+      inningTimes[1, "Start Time"] = strftime(Sys.time(), "%T")
+    }
     
     #record time inning starts/ends
     if("3" %in% newPitches$outs){
@@ -86,7 +94,7 @@ while(TRUE){
         seconds <- inningLength %% 60
         inningTimes[inning, "Inning Length In Seconds"] = inningLength
         inningTimes[inning, "Inning Length"] = paste0(hours, "h ", minutes, "m ", seconds, "s")
-        
+        pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), homeOrAway, opponent, gameData$game_date, inningTimes)
       }
     }
     
@@ -106,17 +114,34 @@ while(TRUE){
         seconds <- preInningTime %% 60
         inningTimes[inning, "Time Between Innings In Seconds"] = preInningTime
         inningTimes[inning, "Time Between Innings"] = paste0(hours, "h ", minutes, "m ", seconds, "s")
+        pitcherRawData <- getPitcherRawData(getNewPitchData(pitcherData, 0), homeOrAway, opponent, gameData$game_date, inningTimes)
       }
     }
     
-    writeToInningTimes(sheet, inningTimes)
     
+    
+    #calculate pitcher stress
+    pitcherStress <- getInningStressScores(pitcherRawData)
+    
+    #write data to google sheets
+    result = 1
+    while(result == 1){
+      tryCatch({
+        writeToGamefeed(sheet, getNewPitchData(pitcherData, 0))
+        writePitcherRawData(sheet, pitcherRawData)
+        writeStressScores(sheet, pitcherStress)
+        writeToInningTimes(sheet, inningTimes)
+        result = 0
+      }, error=function(e){
+        message(e)
+      })
+    }
+    
+    #update metadata
     gameTotalPitches <- max(newPitches$game_total_pitches)
   } else {
     print("No new data, checking for updates...")
   }
-  
-  ###TODO: check if we need to save this data -> could waste a lot of space
   
   #look for updated data from baseballsavant gamefeed
   #if the game is over, exit

@@ -8,21 +8,11 @@ createGoogleSheet <- function(title){
   gs_ws_new(ss = sheet, ws_title = "Gamefeed")
 }
 
-#populate the worksheets with column headers
-addWorksheetHeaders <- function(sheet){
-  gs_edit_cells(ss = sheet, ws = "Stressful Inning Scores", input = c("Pitcher", "Inning", "Stressful Inning Total"), byrow = TRUE)
-  # gs_edit_cells(ss = sheet, ws = "Pitcher Raw Data", input = c("Pitcher", "Season", "Venue", "Opponent", "Date", "Inning", "Inning Type", "Total Pitches",
-                                                               # "Number of Batters", "Pitches Per Batter", "Number of Runners on Base", "Length of Inning", 
-                                                               # "Average Pitch Velocity", "Post Work to Rest Ratio", "Pre Work to Rest Ratio", 
-                                                               # "Stressful Inning Total"), byrow = TRUE)
-  # gs_edit_cells(ss = sheet, ws = "Inning Times", c("Start", "End", "Inning Length", "Time Between Innings"), byrow = TRUE)
-  gs_edit_cells(ss = sheet, ws = "Gamefeed", c("pitcher_name", "inning", "player_total_pitches", "game_total_pitches", "result", "outs", "batter", "start_speed"), byrow = TRUE)
-}
-
-
 #update the inning times worksheet
 writeToInningTimes <- function(sheet, inningTimes){
-  gs_edit_cells(sheet, ws = "Inning Times", anchor = "A1", input = inningTimes, col_names = TRUE)
+  gs_edit_cells(sheet, ws = "Inning Times", anchor = "A1", 
+                input = inningTimes[, c("Inning", "Start Time", "End Time", "Inning Length", "Time Between Innings")], 
+                col_names = TRUE)
 }
 
 #update the Gamefeed page

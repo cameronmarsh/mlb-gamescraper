@@ -42,6 +42,7 @@ getNewPitchData <- function(pitcherData, gameTotalPitches){
     pitches <- rbind(res[newPitchInd, c("pitcher_name", "inning", "player_total_pitches", "game_total_pitches", "result", "outs", "batter", "start_speed")], pitches)
   }
   
+  if(nrow(pitches) == 0) return(pitches)
   return(pitches[order(pitches$game_total_pitches),])
 }
 
@@ -50,7 +51,7 @@ getNewPitchData <- function(pitcherData, gameTotalPitches){
 # get the post work ratio for a given inning
 #
 getPostWorkToRestRatio <- function(inning, inningTimes){
-  if(inning == 1) return(NA)
+  if(inning == 1) return(0)
   
   return(inningTimes[inning-1, "Inning Length In Seconds"] / inningTimes[inning, "Time Between Innings In Seconds"])
 }
@@ -60,6 +61,7 @@ getPostWorkToRestRatio <- function(inning, inningTimes){
 # get the pre work to rest ratio for a given inning
 #
 getPreWorkToRestRatio <- function(inning, inningTimes){
+  if(inning == 1) return(0) 
   return(inningTimes[inning, "Inning Length In Seconds"]/inningTimes[inning, "Time Between Innings In Seconds"])
 }
 
